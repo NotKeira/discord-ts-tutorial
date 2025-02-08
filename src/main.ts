@@ -1,3 +1,4 @@
+import "@/utils/logger";
 import {
   Client,
   Collection,
@@ -55,17 +56,17 @@ const rest = new REST({ version: "10" }).setToken(token);
 (async () => {
   const commandsToRegister: Array<Record<string, any>> = [];
   for (const protoCommand in Commands) {
-    if (Object.prototype.hasOwnProperty.call(commands, protoCommand)) {
+    if (Object.prototype.hasOwnProperty.call(Commands, protoCommand)) {
       const command: Command = (
         Commands as unknown as { [key: string]: Command }
       )[protoCommand];
       if ("data" in command && "execute" in command) {
         commands.set(command.data.name, command);
-        console.log(`[Events.Command] Registering ${command.data.name}`);
+        console.log(`[Commands] Registering ${command.data.name}`);
         commandsToRegister.push(command.data.toJSON());
       } else {
         console.warn(
-          `[Events.Command] Skipping ${protoCommand} due to missing data or execute method`
+          `[Commands] Skipping ${protoCommand} due to missing data or execute method`
         );
       }
     }
@@ -73,23 +74,21 @@ const rest = new REST({ version: "10" }).setToken(token);
 
   try {
     if (commandsToRegister.length > 0) {
-      console.log(`[Events.Command] Reloading application (/) commands...`);
+      console.log(`[Commands] Reloading application (/) commands...`);
       await rest.put(Routes.applicationCommands(clientId), { body: [] });
       const data = await rest.put(Routes.applicationCommands(clientId), {
         body: commandsToRegister,
       });
       console.log(
-        `[Events.Command] Successfully reloaded ${
+        `[Commands] Successfully reloaded ${
           (data as any[]).length
         } application (/) commands.`
       );
     } else {
-      console.warn(`[Events.Command] No commands to register.`);
+      console.warn(`[Commands] No commands to register.`);
     }
   } catch (error) {
-    console.error(
-      `[Events.Command] Error while registering commands: ${error}`
-    );
+    console.error(`[Commands] Error while registering commands: ${error}`);
   }
 })();
 
@@ -103,7 +102,7 @@ for (const eventName in Events) {
     } else {
       client.on(event.name, (...args: any[]) => event.execute(...args));
     }
-    console.log(`[Events.Register] Registered Event - ${eventName}`);
+    console.log(`[Events] Registered Event - ${eventName}`);
   }
 }
 
